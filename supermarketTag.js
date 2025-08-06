@@ -340,19 +340,19 @@ function handleInput() {
   
   // Runner movement (W,A,D,X keys)
   let runnerMoved = false;
-  if (keyIsDown(87)) { // W - up
+  if (keyIsDown(87) || keyIsDown(119)) { // W - up (both upper and lower case)
     runner.velocityY -= ACCELERATION;
     runnerMoved = true;
   }
-  if (keyIsDown(88)) { // X - down
+  if (keyIsDown(88) || keyIsDown(120)) { // X - down (both upper and lower case)
     runner.velocityY += ACCELERATION;
     runnerMoved = true;
   }
-  if (keyIsDown(65)) { // A - left
+  if (keyIsDown(65) || keyIsDown(97)) { // A - left (both upper and lower case)
     runner.velocityX -= ACCELERATION;
     runnerMoved = true;
   }
-  if (keyIsDown(68)) { // D - right
+  if (keyIsDown(68) || keyIsDown(100)) { // D - right (both upper and lower case)
     runner.velocityX += ACCELERATION;
     runnerMoved = true;
   }
