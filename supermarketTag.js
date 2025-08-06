@@ -229,7 +229,7 @@ function drawMenu() {
   fill(255, 255, 100);
   text("התופס (אדום) צריך לתפוס את הנתפס (כחול) תוך 60 שניות", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
   text("הנתפס יכול לאסוף ממתקים לחסינות של 5 שניות!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 35);
-  text("המקש X מאפשר דחיפת עגלה למהירות נוספת!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10);
+  text("המקש C מאפשר דחיפת עגלה למהירות נוספת!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10);
   
   // Controls
   fill(255);
@@ -242,7 +242,7 @@ function drawMenu() {
   text("תופס (אדום): ↑ ↓ ← → חצים", CANVAS_WIDTH / 2 - 150, CANVAS_HEIGHT / 2 + 65);
   
   fill(100, 150, 255);
-  text("נתפס (כחול): W A S D + X לעגלה", CANVAS_WIDTH / 2 + 150, CANVAS_HEIGHT / 2 + 65);
+  text("נתפס (כחול): W A D X + C לעגלה", CANVAS_WIDTH / 2 + 150, CANVAS_HEIGHT / 2 + 65);
   
   fill(255);
   textSize(20);
@@ -338,27 +338,27 @@ function handleInput() {
     }
   }
   
-  // Runner movement (WASD keys)
+  // Runner movement (W,A,D,X keys)
   let runnerMoved = false;
-  if (keyIsDown(87)) { // W
+  if (keyIsDown(87)) { // W - up
     runner.velocityY -= ACCELERATION;
     runnerMoved = true;
   }
-  if (keyIsDown(83)) { // S
+  if (keyIsDown(88)) { // X - down
     runner.velocityY += ACCELERATION;
     runnerMoved = true;
   }
-  if (keyIsDown(65)) { // A
+  if (keyIsDown(65)) { // A - left
     runner.velocityX -= ACCELERATION;
     runnerMoved = true;
   }
-  if (keyIsDown(68)) { // D
+  if (keyIsDown(68)) { // D - right
     runner.velocityX += ACCELERATION;
     runnerMoved = true;
   }
   
-  // X key for cart push (runner only)
-  if (keyIsDown(88) && !runner.hasCart) { // X key
+  // C key for cart push (runner only)
+  if (keyIsDown(67) && !runner.hasCart) { // C key
     // Try to grab a nearby cart
     for (let cart of shoppingCarts) {
       if (cart.available) {

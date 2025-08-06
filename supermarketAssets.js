@@ -269,11 +269,6 @@ function drawFloorTiles() {
 }
 
 function drawSupermarketLayout() {
-  // Draw store shelves - vertical rows
-  fill(100, 150, 80); // Shelf green
-  stroke(70, 120, 50);
-  strokeWeight(2);
-  
   let shelfWidth = 30;
   let shelfHeight = 200;
   let aisleWidth = 120;
@@ -286,15 +281,9 @@ function drawSupermarketLayout() {
     let topShelfHeight = (i % 2 === 0) ? shelfHeight : shelfHeight * 0.7;
     let bottomShelfHeight = (i % 3 === 0) ? shelfHeight * 0.8 : shelfHeight;
     
-    // Top shelf section
-    rect(x, 50, shelfWidth, topShelfHeight);
-    
-    // Bottom shelf section (with gap for movement)
-    rect(x, CANVAS_HEIGHT - bottomShelfHeight - 50, shelfWidth, bottomShelfHeight);
-    
-    // Add shelf details
-    drawShelfDetails(x, 50, shelfWidth, topShelfHeight);
-    drawShelfDetails(x, CANVAS_HEIGHT - bottomShelfHeight - 50, shelfWidth, bottomShelfHeight);
+    // Draw enhanced shelves with depth and details
+    drawEnhancedShelf(x, 50, shelfWidth, topShelfHeight, i);
+    drawEnhancedShelf(x, CANVAS_HEIGHT - bottomShelfHeight - 50, shelfWidth, bottomShelfHeight, i);
   }
   
   // Add some horizontal shelves for variety
@@ -303,34 +292,197 @@ function drawSupermarketLayout() {
     let x = 80;
     let horizontalShelfLength = 400;
     
-    rect(x, y, horizontalShelfLength, shelfWidth);
-    drawShelfDetails(x, y, horizontalShelfLength, shelfWidth);
+    drawEnhancedShelf(x, y, horizontalShelfLength, shelfWidth, i + 10, true);
   }
 }
 
-function drawShelfDetails(x, y, w, h) {
-  // Add products on shelves
-  fill(255, 100, 100); // Red products
+function drawEnhancedShelf(x, y, w, h, index, isHorizontal = false) {
+  push();
+  
+  // Shelf base structure with depth
+  let depthOffset = 8;
+  
+  // Draw shelf shadow
+  fill(0, 0, 0, 30);
   noStroke();
+  rect(x + depthOffset/2, y + depthOffset/2, w, h);
   
-  // Draw small product rectangles
-  let productSize = 8;
-  let spacing = 12;
+  // Draw shelf back (darker)
+  fill(90, 130, 70);
+  stroke(60, 100, 40);
+  strokeWeight(2);
+  rect(x, y, w, h);
   
-  for (let px = x + 5; px < x + w - productSize; px += spacing) {
-    for (let py = y + 5; py < y + h - productSize; py += spacing * 2) {
-      // Vary product colors
-      if (random() < 0.3) {
-        fill(100, 100, 255); // Blue products
-      } else if (random() < 0.5) {
-        fill(255, 255, 100); // Yellow products
-      } else {
-        fill(255, 100, 100); // Red products
-      }
-      
-      rect(px, py, productSize, productSize * 1.5);
+  // Draw shelf front face (lighter)
+  fill(110, 160, 90);
+  stroke(80, 140, 70);
+  strokeWeight(1);
+  rect(x, y, w - depthOffset, h - depthOffset);
+  
+  // Add wood grain texture
+  drawWoodGrain(x, y, w - depthOffset, h - depthOffset);
+  
+  // Draw shelf brackets/supports
+  drawShelfSupports(x, y, w, h, isHorizontal);
+  
+  // Draw enhanced products
+  drawEnhancedProducts(x, y, w, h, index);
+  
+  // Add department signs for some shelves
+  if (index % 3 === 0) {
+    drawDepartmentSign(x, y, w, isHorizontal, index);
+  }
+  
+  pop();
+}
+
+function drawWoodGrain(x, y, w, h) {
+  // Subtle wood grain pattern
+  stroke(95, 145, 85, 100);
+  strokeWeight(1);
+  
+  let grainSpacing = 8;
+  for (let gx = x + 5; gx < x + w - 5; gx += grainSpacing) {
+    let waveHeight = sin((gx - x) * 0.1) * 3;
+    line(gx, y + 2, gx, y + h - 2 + waveHeight);
+  }
+  
+  noStroke();
+}
+
+function drawShelfSupports(x, y, w, h, isHorizontal) {
+  // Metal shelf supports
+  fill(120, 120, 120);
+  stroke(80, 80, 80);
+  strokeWeight(1);
+  
+  if (isHorizontal) {
+    // Vertical supports for horizontal shelves
+    rect(x + 10, y - 5, 6, h + 10);
+    rect(x + w - 16, y - 5, 6, h + 10);
+    if (w > 200) {
+      rect(x + w/2 - 3, y - 5, 6, h + 10);
+    }
+  } else {
+    // Horizontal supports for vertical shelves
+    rect(x - 5, y + 10, w + 10, 4);
+    rect(x - 5, y + h - 14, w + 10, 4);
+    if (h > 100) {
+      rect(x - 5, y + h/2 - 2, w + 10, 4);
     }
   }
+}
+
+function drawEnhancedProducts(x, y, w, h, shelfIndex) {
+  push();
+  
+  // Different product types based on shelf
+  let productTypes = ['cereal', 'canned', 'dairy', 'frozen', 'produce'];
+  let productType = productTypes[shelfIndex % productTypes.length];
+  
+  let productSize = 12;
+  let spacing = 16;
+  let rows = max(1, floor((h - 20) / (productSize * 1.5 + 5)));
+  let cols = max(1, floor((w - 20) / spacing));
+  
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      let px = x + 10 + col * spacing + random(-2, 2);
+      let py = y + 10 + row * (productSize * 1.5 + 5) + random(-1, 1);
+      
+      // Skip some products randomly for realistic gaps
+      if (random() < 0.15) continue;
+      
+      drawProduct(px, py, productSize, productType, col + row * cols);
+    }
+  }
+  
+  pop();
+}
+
+function drawProduct(x, y, size, type, variation) {
+  push();
+  translate(x, y);
+  
+  let baseColors = {
+    cereal: [color(255, 200, 100), color(200, 100, 255), color(100, 255, 200)],
+    canned: [color(220, 220, 220), color(255, 150, 150), color(150, 150, 255)],
+    dairy: [color(255, 255, 255), color(255, 255, 200), color(200, 255, 200)],
+    frozen: [color(150, 200, 255), color(200, 255, 255), color(255, 200, 255)],
+    produce: [color(255, 100, 100), color(100, 255, 100), color(255, 255, 100)]
+  };
+  
+  let colors = baseColors[type] || baseColors.cereal;
+  let productColor = colors[variation % colors.length];
+  
+  // Product shadow
+  fill(0, 0, 0, 40);
+  noStroke();
+  rect(1, size * 1.5 + 1, size, size * 0.3);
+  
+  // Product main body
+  fill(productColor);
+  stroke(red(productColor) * 0.7, green(productColor) * 0.7, blue(productColor) * 0.7);
+  strokeWeight(1);
+  
+  if (type === 'cereal' || type === 'frozen') {
+    // Box shape
+    rect(0, 0, size, size * 1.8);
+    // Brand stripe
+    fill(255, 255, 255, 150);
+    noStroke();
+    rect(2, size * 0.3, size - 4, size * 0.3);
+  } else if (type === 'canned') {
+    // Cylindrical can
+    ellipse(size/2, size * 0.8, size, size * 0.4);
+    rect(0, size * 0.8, size, size * 0.8);
+    ellipse(size/2, size * 1.6, size, size * 0.4);
+    // Label
+    fill(255, 255, 255);
+    noStroke();
+    rect(1, size, size - 2, size * 0.6);
+  } else {
+    // Default rectangular package
+    rect(0, 0, size, size * 1.5);
+    // Simple label
+    fill(255, 255, 255, 180);
+    noStroke();
+    rect(2, size * 0.2, size - 4, size * 0.4);
+  }
+  
+  pop();
+}
+
+function drawDepartmentSign(x, y, w, isHorizontal, index) {
+  push();
+  
+  let signs = ['מוצרי חלב', 'דגנים', 'שימורים', 'קפואים', 'פירות וירקות'];
+  let signText = signs[index % signs.length];
+  
+  // Sign background
+  fill(255, 255, 255);
+  stroke(0, 0, 0);
+  strokeWeight(2);
+  
+  let signY = y - 25;
+  let signW = 80;
+  let signH = 20;
+  
+  rect(x + (w - signW)/2, signY, signW, signH);
+  
+  // Sign text
+  fill(0);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(10);
+  text(signText, x + w/2, signY + signH/2);
+  
+  pop();
+}
+
+function drawShelfDetails(x, y, w, h) {
+  // Legacy function - kept for compatibility
+  // New enhanced shelves use drawEnhancedShelf instead
 }
 
 function drawCheckoutCounters() {
@@ -521,27 +673,27 @@ function drawPlayerCart(player, isChaser) {
 }
 
 function drawImmunityEffect(player) {
-  // Golden immunity glow
-  let glowIntensity = sin(frameCount * 0.3) * 100 + 150;
+  // Golden immunity glow - much gentler
+  let glowIntensity = sin(frameCount * 0.05) * 30 + 80;
   
   // Outer glow
-  fill(255, 215, 0, glowIntensity * 0.3);
+  fill(255, 215, 0, glowIntensity * 0.4);
   noStroke();
-  ellipse(0, 0, player.size * 2.5, player.size * 2.5);
+  ellipse(0, 0, player.size * 2.2, player.size * 2.2);
   
   // Inner glow
-  fill(255, 255, 100, glowIntensity * 0.5);
-  ellipse(0, 0, player.size * 1.8, player.size * 1.8);
+  fill(255, 255, 150, glowIntensity * 0.6);
+  ellipse(0, 0, player.size * 1.6, player.size * 1.6);
   
-  // Sparkles around immune player
-  for (let i = 0; i < 6; i++) {
-    let angle = (frameCount * 0.1 + i * PI/3) % TWO_PI;
-    let sparkleDistance = player.size * (1.5 + sin(frameCount * 0.15 + i) * 0.3);
+  // Gentle sparkles around immune player
+  for (let i = 0; i < 4; i++) {
+    let angle = (frameCount * 0.02 + i * PI/2) % TWO_PI;
+    let sparkleDistance = player.size * (1.3 + sin(frameCount * 0.03 + i) * 0.2);
     let sparkleX = cos(angle) * sparkleDistance;
     let sparkleY = sin(angle) * sparkleDistance;
     
-    fill(255, 255, 0, glowIntensity);
-    star(sparkleX, sparkleY, 3, 6, 5);
+    fill(255, 255, 100, glowIntensity * 0.8);
+    star(sparkleX, sparkleY, 2, 4, 3);
   }
 }
 
@@ -616,12 +768,12 @@ function drawCandy(candy) {
   push();
   translate(candy.x, candy.y);
   
-  // Candy sparkle effect
-  let sparkleIntensity = sin(candy.sparkle) * 0.5 + 0.5;
-  let glowSize = candy.size + sparkleIntensity * 10;
+  // Gentle candy glow effect - reduced blinking
+  let sparkleIntensity = sin(candy.sparkle * 0.3) * 0.3 + 0.7;
+  let glowSize = candy.size + sparkleIntensity * 6;
   
-  // Glow effect
-  fill(255, 255, 100, sparkleIntensity * 150);
+  // Subtle glow effect
+  fill(255, 255, 150, sparkleIntensity * 80);
   noStroke();
   ellipse(0, 0, glowSize, glowSize);
   
@@ -790,10 +942,10 @@ function drawGameUI() {
     textSize(72);
     text(timeLeft, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     
-    // Pulsing effect for urgency
-    let pulse = sin(frameCount * 0.5) * 50 + 205;
-    fill(255, 0, 0, pulse);
-    textSize(84);
+    // Gentle pulsing effect for urgency - much less aggressive
+    let pulse = sin(frameCount * 0.15) * 30 + 120;
+    fill(255, 100, 100, pulse);
+    textSize(78);
     text(timeLeft, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   }
   
